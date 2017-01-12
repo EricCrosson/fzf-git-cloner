@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Written by Eric Crosson
+# 2017-01-12
+# Version 0.0.0
+#
+# This program uses fzf to select a git repo to clone from a server.
+
+# Currently only supports github
+
+# TODO: ensure dependencies are installed
+
+readonly username="ericcrosson"
+readonly git_server="github.com"
+
+choose() {
+    curl -s https://api.github.com/users/${username}/repos \
+        | grep full_name \
+        | awk '{print $2}' \
+        | sed 's#.*/\([^"]*\)",#\1#' \
+        | fzf
+}
+
+main() {
+    local -r repo=$(choose)
+    git clone git@${git_server}:${username}/${repo}
+}
+
+
+main "$@"
