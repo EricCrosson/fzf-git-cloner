@@ -22,7 +22,7 @@ choose() {
 
 main() {
     local -r repo=$(choose)
-    git clone git@${git_server}:${username}/${repo}
+    git clone --recursive git@${git_server}:${username}/${repo}
 }
 
 
