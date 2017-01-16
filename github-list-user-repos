@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Written by Eric Crosson
+# 2017-01-12
+# Version 0.0.0
+#
+# This program uses the GitHub api to list repositories of a user.
+#
+# Authentication to GitHub is required.
+
+# TODO: need 4 speed
+
+readonly github_api_url="https://api.github.com"
+
+usage() {
+    echo "TODO: write usage"
+}
+
+check_args() {
+    if [[ "$#" -ne 1 ]]; then
+        if [[ -z "${GITHUB_OAUTH_TOKEN+x}" ]]; then
+            usage
+        fi
+    else
+        export GITHUB_OAUTH_TOKEN=$1; shift
+    fi
+}
+
+# Return a url accessing specified page ($1) of users' GitHub
+# repositories.
+github_api_url_user_repos() {
+    local -r page=$1; shift
+    echo "${github_api_url}/user/repos?page=${page}&per_page=100&access_token=${GITHUB_OAUTH_TOKEN}"
+}
+
+# Return true if current page ($1) is not last page
+next_page() {
+    local -r page=$1; shift
+    if echo $(curl -s -I $(github_api_url_user_repos ${page})) | grep Link | grep next; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Get repos on page ${1:-1}
+list_repos() {
+    local -r page=${1:-1}
+    echo $(curl -s $(github_api_url_user_repos ${page}) \
+               | grep full_name \
+               | awk '{print $2}' \
+               | sed 's#.*/\([^"]*\)",#\1#')
+}
+
+main() {
+    local page=1
+    repos=$(list_repos)
+    while [[ $(next_page ${page}) ]]; do
+        ((page++))
+        repos="${repos} $(list_repos ${page})"
+    done
+    echo ${repos} | tr ' ' '\n' | fzf
+}
+
+check_args "$@"
+main "$@"

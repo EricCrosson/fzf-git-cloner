@@ -9,19 +9,9 @@
 
 # TODO: ensure dependencies are installed
 
-readonly username="ericcrosson"
-readonly git_server="github.com"
-
-choose() {
-    curl -s https://api.github.com/users/${username}/repos \
-        | grep full_name \
-        | awk '{print $2}' \
-        | sed 's#.*/\([^"]*\)",#\1#' \
-        | fzf
-}
-
 main() {
-    local -r repo=$(choose)
+    local -r repo=$(./github-list-user-repos)
+    [[ -z ${repos} ]] && exit -1
     git clone --recursive git@${git_server}:${username}/${repo}
 }
 
