@@ -22,6 +22,7 @@ choose() {
 
 main() {
     local -r repo=$(choose)
+    [[ -z ${repo} ]] && exit
     git clone git@${git_server}:${username}/${repo}
 }
 
